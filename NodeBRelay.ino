@@ -5,6 +5,9 @@
 #define RST_PIN 14
 #define DIO0_PIN 26
 
+String idNode   = "B";     // ID unik node ini
+String tagRelay = "Via Node:" + idNode;   // contoh: "Relay:B"
+
 void setup() {
   Serial.begin(9600);
   LoRa.setPins(CS_PIN, RST_PIN, DIO0_PIN);
@@ -12,7 +15,7 @@ void setup() {
     Serial.println("LoRa Gagal Mulai");
     while (1);
   }
-  Serial.println("Relay siap.");
+  Serial.println("Node B (Relay) siap.");
 }
 
 void loop() {
@@ -25,10 +28,21 @@ void loop() {
     Serial.println("Pesan diterima dari A: " + pesanMasuk);
     
     // Relay ke C
-    String pesanRelay = pesanMasuk + " -> relay";
+    // --- 2. Cegah “→relay” berulang & tambahkan ID ---
+    String pesanRelay;
+    if (pesanMasuk.indexOf("Relay:") == -1) {
+      // belum ada tag Relay, tambahkan
+      pesanRelay = pesanMasuk + "|" + tagRelay;
+    } else {
+      // sudah ada, cukup tambahkan hop baru (opsional)
+      pesanRelay = pesanMasuk + "|" + idNode;   // contoh jejak hop
+    }
+
+    delay(60);
     LoRa.beginPacket();
     LoRa.print(pesanRelay);
     LoRa.endPacket();
+    
     Serial.println("Diteruskan ke C: " + pesanRelay);
   }
 }

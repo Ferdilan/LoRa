@@ -7,8 +7,10 @@
 #define DIO0_PIN 26
 
 #define DHTPIN 4          
-#define DHTTYPE DHT22     
+#define DHTTYPE DHT11     
 DHT dht(DHTPIN, DHTTYPE);
+
+String idNode = "A";
 
 void setup() {
   Serial.begin(9600);
@@ -22,19 +24,23 @@ void setup() {
     Serial.println("LoRa Gagal Mulai");
     while (1);
   }
+
+  Serial.println("Transmitter (Node A) Siap");
 }
 
 void loop() {
   float suhu = dht.readTemperature();
-  if (isnan(suhu)) {
-    Serial.println("Gagal membaca sensor suhu!");
+  float kelembapan = dht.readHumidity();
+  if (isnan(kelembapan)) {
+    Serial.println("Gagal membaca sensor Kelembapan!");
     return;
   }
 
-  String pesan = "Suhu: " + String(suhu,1) + " C";
+  String pesan = "ID:" + idNode + " Kelembapan: " + String(kelembapan,1) + " %";
   Serial.println("Mengirim ke B: " + pesan);
+
   LoRa.beginPacket();
   LoRa.print(pesan);
   LoRa.endPacket();
-  delay(2000); // jeda antar pesan
+  delay(2000);
 }
