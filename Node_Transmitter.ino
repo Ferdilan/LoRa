@@ -7,10 +7,8 @@
 #define DIO0_PIN  26
 
 #define DHTPIN 4          
-#define DHTTYPE DHT22     
+#define DHTTYPE DHT11     
 DHT dht(DHTPIN, DHTTYPE);
-
-int counter = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -19,37 +17,33 @@ void setup() {
   dht.begin();
 
   LoRa.setPins(CS_PIN, RST_PIN, DIO0_PIN);
-
   if (!LoRa.begin(433E6)) {
     Serial.println("Gagal memulai LoRa!");
-    while (1);
+    while (true);
   }
-
-  LoRa.setSpreadingFactor(7);
-  LoRa.setSignalBandwidth(125E3); 
-  LoRa.setTxPower(14);
 
   Serial.println("LoRa P2P Transmitter Siap.");
 }
 
 void loop() {
-  float suhu = dht.readTemperature();
+  float kelembapan = dht.readHumidity();
 
-  // Validasi pembacaan suhu
-  if (isnan(suhu)) {
-    Serial.println("Gagal membaca sensor suhu!");
+  if (isnan(kelembapan)) {
+    Serial.println("Gagal membaca sensor Kelembapan!");
     return;
   }
 
-  String pesan = "Paket #" + String(counter) + " Suhu: " + String(suhu, 1) + " C";
-
-  Serial.print("Mengirim: ");
-  Serial.println(pesan);
+  String pesan = "ID:A | Kelembapan:" + String(kelembapan, 1) + " %";
 
   LoRa.beginPacket();
   LoRa.print(pesan);
   LoRa.endPacket();
 
-  counter++;
+  Serial.println("=================================");
+  Serial.println("Mengirim: " + pesan);
+  Serial.print("Waktu   : ");
+  Serial.println(millis());
+  Serial.println();
+
   delay(2000);
 }
